@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Stormotion-test-task/static/css/main.2bfecdeb.css",
+    "main.js": "/Stormotion-test-task/static/js/main.ca39eee1.js",
+    "index.html": "/Stormotion-test-task/index.html",
+    "main.2bfecdeb.css.map": "/Stormotion-test-task/static/css/main.2bfecdeb.css.map",
+    "main.ca39eee1.js.map": "/Stormotion-test-task/static/js/main.ca39eee1.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2bfecdeb.css",
+    "static/js/main.ca39eee1.js"
+  ]
+}
