@@ -2,6 +2,11 @@ import { useEffect, useState } from "react"
 import Information from "./Information/Information";
 import Container from "./Container/Container";
 import PickButtons from "./PickButtons/PickButtons";
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import MenuButtons from "./MenuButtons/MenuButtons";
+import Modal from "./Modal/Modal";
+import OptionsForm from "./OptionsForm/OptionsForm";
 
 const players = {
   human: "HUMAN",
@@ -13,9 +18,11 @@ export default function App() {
   const [totalMatches, setTotalMatches] = useState(25);//всього сірників
   const [playerMatches, setPlayerMatches] = useState(0);//сірники гравця 
   const [botMatches, setBotMatches] = useState(0);//сірники бота
-  const [leftMatches, setLeftmatches] = useState(25);// залишок сірників
+  const [leftMatches, setLeftMatches] = useState(25);// залишок сірників
   const [totalButtons, setTotalButtons] = useState(3);//кількість кнопок вибору
   const [currentPlyer, setCurrentPlayer] = useState(players.human);//вибір гравця
+  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
 
   const buttons = []
@@ -31,41 +38,92 @@ export default function App() {
       chooseWinner();
       return
     }
-
-    if (leftMatches >= 0 && currentPlyer === players.bot) {
-    //ход бота
-    setTimeout(()=>{botTurn();},2000)
-    }
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leftMatches])
+
+  useEffect(() => {
+    if (leftMatches >= 0 && currentPlyer === players.bot) {
+    //ход бота
+    botTurn();
+    }
+  },[botTurn, currentPlyer, leftMatches])
 
   //обробка натискання на кнопку
   function onHandleButton(e) {
     
     const choose = Number(e.target.name);
-    console.log(leftMatches === 0 && choose >= leftMatches)
     if (leftMatches === 0 && choose >= leftMatches) {
-      return alert(`You can't take that many matches. There is only ${leftMatches} in the deck.`)
-    }
-    ;
+      return toast.info(`You can't take that many matches. There is only ${leftMatches} in the deck.`, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        theme: "light",
+        });
+    };
     //зміна стейту с сірниками гравця 
     setPlayerMatches(v => v + choose);
-    setLeftmatches(v => v - choose);
+    setLeftMatches(v => v - choose);
     setCurrentPlayer(players.bot);
   };
+
+  function handleStart() {
+    setIsGameStarted(true);
+  }
+
+  function handleOptions() {
+   toggleModal();
+  }
+
+  function toggleModal(e){
+        setShowModal(!showModal);
+  }
+  
+  function formSubmitHandler(data) {
+    console.log(data.firstTurn);
+    toggleModal()
+    if (Number(data.totalMatches) === 25) {
+      setTotalMatches(25)
+    } else {
+      setTotalMatches(2 * Number(data.totalMatches) + 1)
+      setLeftMatches(2*Number(data.totalMatches)+1)
+    }
+    setTotalButtons(Number(data.matchesPerTurn))
+
+    if (data.firstTurn === "bot") {
+      console.log("bot pick first")
+      setCurrentPlayer(players.bot)
+    } else {
+      setCurrentPlayer(players.human)
+    }
+  }
+  
 
   // функція яка буде займатись обробкою того хто переміг
   function chooseWinner() {
     if (playerMatches % 2 === 0) {
-      alert("Game Over! You Win");
-    };
-    alert("Game Over! You Loose")
+      toast.success('Game Over! You Win', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        theme: "light",
+        });
+    } else {
+      toast.success('Game Over! You Loose', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        theme: "light",
+        });
+    }
+    setIsGameStarted(false);
   };
 
   //Функція яка буде розраховувати ход бота 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   function botTurn() {
-    console.log("Bots turn!");
 
    //Перевірка чи може бот взяти сірник з колоди
     if (leftMatches !== 0) {
@@ -74,33 +132,63 @@ export default function App() {
 
         if (leftMatches === 1) {
           //Якщо в колоді 1 cірник то візьме всього 1 
-          setBotMatches(v => v + 1);
-          setLeftmatches(v => v - 1);
+          changeStateOnBotTurn(1)
         } else {
-        setBotMatches(v => v + 2);
-        setLeftmatches(v => v - 2);
+          changeStateOnBotTurn(2)
         }
       }
-      if (leftMatches % 2 === 0) { //Якщо кількість сірників в колоді парна то бот бере будь яку непарну кількість сірників
-          setBotMatches(v => v + 3);
-          setLeftmatches(v => v - 3);
+      if (leftMatches % 2 === 0) {
+        changeStateOnBotTurn(3) //Якщо кількість сірників в колоді парна то бот бере будь яку непарну кількість сірників
       };
       setCurrentPlayer(players.human);
     };
   };
 
+  //функція яка оптимізує ход бота
+  function changeStateOnBotTurn(x) {
+    setBotMatches(v => v + x);
+    setLeftMatches(v => v - x);
+    toast.info(`Bot pick ${x} matches`, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+  }
+
+  if (!isGameStarted) {
+    return (
+      <Container>
+        <MenuButtons handleStart={handleStart} handleOptions={handleOptions} />
+        {showModal &&
+          <Modal onClose={toggleModal}>
+            <OptionsForm onSubmit={formSubmitHandler} />
+          </Modal>}
+      </Container>
+    )
+  }
+
+  //Якщо гра почалась, то рендеремо гру
+  if (isGameStarted) {
+    //рендер розмітки
+    return (
+      // рендеримо компонент Container 
+      <Container>
+        {/* //рендеримо компонент Information  */}
+        <Information totalMatches={totalMatches} playerMatches={playerMatches} botMatches={botMatches} leftMatches={leftMatches } />
+        {/* рендеримо компонент PickButtons  */}
+        {currentPlyer === players.human ?
+          (<PickButtons buttons={buttons} onHandleButton={onHandleButton} />) : (<p>Bot Turn</p>)}
+        
+        {/* контейнер бібліотеки react-toastify */}
+        <ToastContainer />
+      </Container>
+    );
+  };
   
-  //рендер розмітки
-  return (
-    // рендеримо компонент Container 
-    <Container>
-      {/* //рендеримо компонент Information  */}
-      <Information totalMatches={totalMatches} playerMatches={playerMatches} botMatches={botMatches} leftMatches={leftMatches } />
-      {/* рендеримо компонент PickButtons  */}
-      {currentPlyer === players.human ?
-        (<PickButtons buttons={buttons} onHandleButton={onHandleButton} />) : (<p>Bot Turn</p>)}
-      
-    </Container>
-  );
 }
   

@@ -1,0 +1,36 @@
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.item {
+  width: 100%;
+}
+
+.button {
+  width: 380px;
+  height: 50px;
+  border-radius: 50px;
+  border: 0;
+  background: rgb(131, 58, 180);
+  background: linear-gradient(
+    90deg,
+    rgba(131, 58, 180, 1) 0%,
+    rgba(213, 147, 165, 1) 50%,
+    rgba(252, 176, 69, 1) 100%
+  );
+  font-family: "Belanosima", sans-serif;
+  font-size: 25px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+.button:hover,
+.button:focus {
+  -webkit-box-shadow: inset 2px 4px 55px -14px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: inset 2px 4px 55px -14px rgba(0, 0, 0, 0.75);
+  box-shadow: inset 2px 4px 55px -14px rgba(0, 0, 0, 0.75);
+}
