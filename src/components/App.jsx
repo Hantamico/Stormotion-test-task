@@ -36,6 +36,7 @@ export default function App() {
     //якщо сірників не залишилось то гра закінчується і обирається переможець
     if (leftMatches <= 0) {
       chooseWinner();
+      setTimeout(() => setIsGameStarted(false), 2000);
       return
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,14 +53,16 @@ export default function App() {
   function onHandleButton(e) {
     
     const choose = Number(e.target.name);
-    if (leftMatches === 0 && choose >= leftMatches) {
-      return toast.info(`You can't take that many matches. There is only ${leftMatches} in the deck.`, {
+    console.log(choose > leftMatches);
+    if (choose > leftMatches) {
+      toast.info(`You can't take that many matches. There is only ${leftMatches} in the deck.`, {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         theme: "light",
-        });
+      });
+      return;
     };
     //зміна стейту с сірниками гравця 
     setPlayerMatches(v => v + choose);
@@ -118,7 +121,6 @@ export default function App() {
         theme: "light",
         });
     }
-    setIsGameStarted(false);
   };
 
   //Функція яка буде розраховувати ход бота 
