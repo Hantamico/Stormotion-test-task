@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react"
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 import Information from "./Information/Information";
 import Container from "./Container/Container";
 import PickButtons from "./PickButtons/PickButtons";
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
 import MenuButtons from "./MenuButtons/MenuButtons";
 import Modal from "./Modal/Modal";
 import OptionsForm from "./OptionsForm/OptionsForm";
+import InGameNav from "./InGameNav/InGameNav";
 
 const players = {
   human: "HUMAN",
@@ -23,6 +25,7 @@ export default function App() {
   const [currentPlyer, setCurrentPlayer] = useState(players.human);//вибір гравця
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [options, setOptions] = useState(null);
 
 
   const buttons = []
@@ -37,6 +40,7 @@ export default function App() {
     if (leftMatches <= 0) {
       chooseWinner();
       setTimeout(() => setIsGameStarted(false), 2000);
+      RestartGame();
       return
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,7 +51,7 @@ export default function App() {
     //ход бота
     botTurn();
     }
-  },[botTurn, currentPlyer, leftMatches])
+  }, [botTurn, currentPlyer, leftMatches])
 
   //обробка натискання на кнопку
   function onHandleButton(e) {
@@ -70,6 +74,43 @@ export default function App() {
     setCurrentPlayer(players.bot);
   };
 
+  function RestartGame() {
+
+    if (!options) {
+      setTotalMatches(25);
+      setLeftMatches(25);
+      setPlayerMatches(0);
+      setBotMatches(0);
+      setTotalButtons(3);
+      setCurrentPlayer(players.human);
+    }
+
+    if (options) {
+      if (Number(options.totalMatches) === 25) {
+        setTotalMatches(25)
+      } else {
+      setTotalMatches(2 * Number(options.totalMatches) + 1);
+      setLeftMatches(2 * Number(options.totalMatches) + 1);
+      }
+      
+      setTotalButtons(Number(options.matchesPerTurn))
+
+    if (options.firstTurn === "bot") {
+      console.log("bot pick first")
+      setCurrentPlayer(players.bot)
+    } else {
+      setCurrentPlayer(players.human)
+    }
+      setPlayerMatches(0);
+      setBotMatches(0);
+    };
+  };
+
+  function StopGame() {
+    setIsGameStarted(false)
+    RestartGame()
+  }
+
   function handleStart() {
     setIsGameStarted(true);
   }
@@ -83,13 +124,14 @@ export default function App() {
   }
   
   function formSubmitHandler(data) {
-    console.log(data.firstTurn);
+    console.log(data);
+    setOptions(data);
     toggleModal()
     if (Number(data.totalMatches) === 25) {
       setTotalMatches(25)
     } else {
-      setTotalMatches(2 * Number(data.totalMatches) + 1)
-      setLeftMatches(2*Number(data.totalMatches)+1)
+      setTotalMatches(2 * Number(data.totalMatches) + 1);
+      setLeftMatches(totalMatches);
     }
     setTotalButtons(Number(data.matchesPerTurn))
 
@@ -101,7 +143,6 @@ export default function App() {
     }
   }
   
-
   // функція яка буде займатись обробкою того хто переміг
   function chooseWinner() {
     if (playerMatches % 2 === 0) {
@@ -180,6 +221,7 @@ export default function App() {
     return (
       // рендеримо компонент Container 
       <Container>
+        <InGameNav onRestart={RestartGame} onStop={StopGame} />
         {/* //рендеримо компонент Information  */}
         <Information totalMatches={totalMatches} playerMatches={playerMatches} botMatches={botMatches} leftMatches={leftMatches } />
         {/* рендеримо компонент PickButtons  */}
